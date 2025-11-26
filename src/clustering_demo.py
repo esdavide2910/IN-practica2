@@ -34,7 +34,7 @@ import seaborn as sns
 def norm_to_zero_one(df):
     return (df - df.min()) * 1.0 / (df.max() - df.min())
 
-datos = pd.read_csv('alojamientos_booking_Granada_2024.csv',sep= ';', encoding="iso-8859-1")
+datos = pd.read_csv('dataset/alojamientos_booking_Granada_2024.csv',sep= ';', encoding="iso-8859-1")
 
 
 # Seleccionar casos, alojamineto del ALbaicín
