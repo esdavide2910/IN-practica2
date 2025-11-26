@@ -1,0 +1,19 @@
+[project]
+name = "IN-PRACTICA2"
+version = "0.1.0"
+description = "Práctica 2 de la asignatura Inteligencia de Negocio (UGR, 2025-2026)"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "anywidget>=0.9.21",
+    "chardet>=5.2.0",
+    "marimo==0.17.8",
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.5",
+    "pandas>=2.3.3",
+    "plotly>=6.5.0",
+    "polars>=1.35.2",
+    "pyzmq>=27.1.0",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+]

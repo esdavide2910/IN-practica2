@@ -1,3 +1,5 @@
+**/*.venv
+
 # Ignorar archivos PDF
 **/*.pdf
 
