@@ -1,6 +1,7 @@
 # IN-practica2
 Práctica 2 de la asignatura Inteligencia de Negocio (UGR, 2025-2026)
 
+
 ## 📌 Project Structure
 ```
 IN-PRACTICA2/
@@ -17,10 +18,10 @@ IN-PRACTICA2/
 
 **Prerequisites**
 
-- [uv installed]{https://docs.astral.sh/uv/getting-started/installation/} 
+- [uv installed](https://docs.astral.sh/uv/getting-started/installation/)
 
 > 💡 Note: You don’t need to have a specific version of Python installed.
-> `uv` will automicatically donwload and use the exact Python version required by te project.
+> `uv` will automicatically download and use the exact Python version required by te project.
 
 1. Clone the repository
 
@@ -29,24 +30,30 @@ git clone https://github.com/esdavide2910/IN-practica2.git
 cd IN-PRACTICA2
 ```
 
-2. Create and activate the virtual environment
+> 💡 Note: Configuring the dependencies is not needed, since `uv` automatically creates and manages an 
+> isolated environment for the project.  It will install all required dependencies defined in 
+> `pyproject.toml` the first time you run any command such as `uv run`.
+>
+> Additionally, the file `uv.lock` ensures full reproducibility of the environment.  
+> It locks the exact versions of all dependencies so that anyone cloning the project will obtain the same 
+> environment, guaranteeing consistent behavior across machines.
 
-`uv` automatically creates `.venv` for you:
 
-```bash
-uv venv
-source .venv/bin/activate   # Linux or macOS
-.\.venv\Scripts\activate    # Windows
+## ▶️ Usage
+
+- In order to use the `marimo` notebook:
+
+```python
+uv run marimo edit ./notebook/notebook.py
 ```
 
-3. Install project dependencies
+- In order to run any python script:
 
-```bash
-uv sync 
+```python
+uv run <script.py>
 ```
 
-This installs everything declared in pyproject.toml and locks versions using uv.lock.
 
-## License
+## 📜 License
 
 [MIT](https://choosealicense.com/licenses/mit/)
