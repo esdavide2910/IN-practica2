@@ -33,7 +33,6 @@ cd IN-PRACTICA2
 > 💡 Note: Configuring the dependencies is not needed, since `uv` automatically creates and manages an 
 > isolated environment for the project.  It will install all required dependencies defined in 
 > `pyproject.toml` the first time you run any command such as `uv run`.
->
 > Additionally, the file `uv.lock` ensures full reproducibility of the environment.  
 > It locks the exact versions of all dependencies so that anyone cloning the project will obtain the same 
 > environment, guaranteeing consistent behavior across machines.

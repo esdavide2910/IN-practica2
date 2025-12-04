@@ -54,4 +54,12 @@ doc/**/.mtc
 doc/**/*-SAVE-ERROR
 doc/build/
 
+# 
+.~lock.*
 
+#
+__pycache__/
+*.pyc
+
+#
+**/__marimo__/**

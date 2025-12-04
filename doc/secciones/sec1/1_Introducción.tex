@@ -1,3 +1,26 @@
 \section{Introducción}
 
-Hola
+Esta es la segunda práctica de la asignatura \textit{Inteligencia de Negocio}, impartida en la Universidad de Granada, en el primer cuatrimestre del curso 2025/2026.
+
+A diferencia de en la anterior práctica, donde explorábamos una tarea de aprendizaje supervisado como es la clasificación, en esta nos centraremos en una tarea de aprendizaje no supervisado: el agrupamiento o \textit{clustering}. Esta tarea no busca generar una salida predefinida o etiquetada, sino permitir descubrir patrones o estructuras ocultas en los datos. Para ello, particiona el conjunto de datos en subconjunto de instancias denominados \textit{clusters}, de forma que las instancias de un mismo \textit{cluster} muestren mayor similitud entre ellas que con las instancias de otros \textit{clusters}.
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsection{Datos empleados}
+
+Disponemos de un conjunto de datos: \href{https://www.ine.es/dyngs/Prensa/ECV2024.htm}{Encuesta de Condiciones de Vida (ECV) de 2024}. Estos datos son tabulares, con 29 781 instancias y 184 características. La interpretación de las características se recoge en un fichero independiente (diccionario), que contiene el nombre de cada variable, el significado de los códigos que emplea ---de haberlos---, y una descripción. 
+
+En un primer vistazo, dos tipos de variables se diferencian llamativamente:
+
+\begin{itemize}
+    \item \textbf{Variables principales}: Son aquellas que aportan información \textit{per se}, ya sea numérica, booleana o nominal. 
+    \item \textbf{Variables complementarias}: Su denominación acaba en `\_F', y complementan a una variable principal. En caso de complementar a una variable de renta, indica la fuente de la información y el tipo de información recogida; en el resto de casos, indica si la característica principal está completa, falta o simplemente no es aplicable en la instancia en cuestión.
+\end{itemize}
+
+No todas las variables principales tienen una complementaria, pero todas las complementarias tienen una principal a la que referirse.
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsection{Software}
+
+Trabajaremos con Python, ... 
