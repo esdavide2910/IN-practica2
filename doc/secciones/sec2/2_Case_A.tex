@@ -1,3 +1,30 @@
-\section{Caso de estudio A: }
+\section{Caso de estudio A: Perfiles de tenencia y carga de vivienda}
 
-El primer caso de estudio propuesto tiene como objetivo 
+El primer caso de estudio propuesto tiene como objetivo identificar grupos de hogares con características similares en términos de tipo de vivienda y carga económica asociada. Esto permite comprender el parque de vivienda y los distintos perfiles, como hogares en propiedad con elevada carga hipotecaria, inquilinos tensionados por el alquiler, o viviendas en cesión con niveles reducidos de gasto. Esta clasificación resulta especialmente útil para entender desigualdades habitacionales y orientar políticas públicas.
+
+Las variables empleadas en para realizar el \textit{clustering} serán las siguientes:
+
+\begin{itemize}
+    
+    \item \textbf{Régimen de tenencia}: Obtenida a partir del la columna \code{HH021}. Se diferencian tres valores categóricos: `pripietario' (\textit{owned}), `alquilado' (\textit{rented}) y `cedido' (\textit{occupied rent-free}). No se ha incluido la discriminación de tipo de propietarios con y sin hipoteca, y alquilados en apartamentos por encima o por debajo del valor de mercado, ya que esta diferenciación se captura de forma más precisa a través de las variables monetarias incluidas a continuación.
+    
+    \item \textbf{Intereses de la hipoteca}: Obtenida a partir de la columna \code{HY100N}. Son los intereses anuales correspondientes a la hipoteca de la vivienda. Esta variable ya permite diferenciar propietarios con y sin hipoteca. Su inclusión permite identificar hogares propietarios con carga hipotecaria activa frente a aquellos que ya han amortizado su préstamo.
+    
+    \item \textbf{Cuota de alquiler}: Obtenida a partir de la columna \code{HH060N}. Es la cuota de alquiler anual de la vivienda. Esta variable permite diferenciar entre hogares que afrontan gasto de alquiler y aquellos que no (propietarios o cesionarios). Además ayuda a caracterizar la intensidad de la carga entre distintos perfiles de inquilinos.
+    
+    \item \textbf{Alquiler imputado}: Obtenida a partir de la columna \code{HY030N}. Refleja el valor estimado del alquiler de mercado para una vivienda equivalente, menos el alquiler efectivamente abonado. Este indicador permite identificar situaciones como vivienda en propiedad sin coste directo, alquiler por debajo del valor de mercado o cesiones gratuitas.
+    
+    \item \textbf{Gastos de vivienda}: Obtenida a partir de la columna \code{HH070}. Incluye el conjunto de gastos relacionados con la vivienda: alquiler, intereses hipotecarios y otros gastos recurrentes (comunidad, electricidad, agua, gas, etc.). Esta variable sintetiza la carga económica total asociada a la ocupación de la vivienda, permitiendo comparar el esfuerzo financiero entre hogares con diferentes regímenes de tenencia.
+    
+\end{itemize}
+
+En el análisis posterior de los \textit{clusters} formados, se analizarán también las siguientes variables:
+
+\begin{itemize}
+
+    \item \textbf{Renta disponible equivalizada}: Es la renta disponible del hogar entre las unidades de consumo del hogar (columnas \code{HY020} y \code{HX240}, respectivamente). Esta variable ...
+    
+    \item \textbf{}
+
+\end{itemize}
+

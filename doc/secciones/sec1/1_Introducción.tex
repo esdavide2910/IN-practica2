@@ -13,14 +13,233 @@ Disponemos de un conjunto de datos: \href{https://www.ine.es/dyngs/Prensa/ECV202
 En un primer vistazo, dos tipos de variables se diferencian llamativamente:
 
 \begin{itemize}
-    \item \textbf{Variables principales}: Son aquellas que aportan información \textit{per se}, ya sea numérica, booleana o nominal. 
-    \item \textbf{Variables complementarias}: Su denominación acaba en `\_F', y complementan a una variable principal. En caso de complementar a una variable de renta, indica la fuente de la información y el tipo de información recogida; en el resto de casos, indica si la característica principal está completa, falta o simplemente no es aplicable en la instancia en cuestión.
+    \item \textbf{Variables principales:} Son aquellas que aportan información \textit{per se}, ya sea numérica, booleana o categórica. 
+    \item \textbf{Variables complementarias:} Su denominación acaba en `\_F', y complementan a una variable principal. En caso de complementar a una variable de renta, indica la fuente de la información y el tipo de información recogida; en el resto de casos, indica si la característica principal está completa, falta o simplemente no es aplicable en la instancia en cuestión.
 \end{itemize}
 
 No todas las variables principales tienen una complementaria, pero todas las complementarias tienen una principal a la que referirse.
-
+ 
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
 
 \subsection{Software}
 
 Trabajaremos con Python, ... 
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsection{Clustering}
+
+
+\subsubsection{Algoritmos de \textit{clustering}}
+
+Se propone emplear los siguientes algoritmos:
+
+\begin{itemize}
+    \item \textbf{K-Means:}
+    \item \textbf{HDBSCAN:}
+    \item \textbf{Gaussian Mixture:} 
+\end{itemize}
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsection{Métricas}
+
+Como se ha indicado antes, el \textit{clustering} no busca dar una salida que pueda ser correcta o no, sino que trata de conocer los datos y encontrar patrones comunes que permitan agruparlos de forma significativa. Para evaluar la calidad de las agrupaciones obtenidas existen dos tipos de métricas:
+
+\begin{itemize}
+    \item \textbf{Métricas intrínsecas:}  
+    Evalúan la calidad del \textit{clustering} utilizando únicamente la información interna del propio conjunto de datos y de las asignaciones a cada cluster. Miden aspectos como la \textbf{cohesión} (similitud entre los elementos de un mismo grupo) y la \textbf{separación} (diferencia entre grupos). Ejemplos clásicos son el índice de silueta, el índice Davies-Bouldin o el Calinski-Harabasz. Estas métricas son especialmente útiles cuando no existe una ``verdad'' o clasificación previa con la que comparar.
+
+    \item \textbf{Métricas extrínsecas:}  
+    Comparan el \textit{clustering} obtenido con una referencia externa o etiqueta conocida, es decir, miden hasta qué punto los grupos formados coinciden con otra clasificación previamente establecida, ya sea una \textit{ground truth} u otros \textit{clusterings}. Se emplean, por tanto, cuando existe alguna variable externa que pueda servir como estándar. Entre los indicadores más utilizados se encuentran la homogeneidad, la completitud, la V-measure o la entropía de clasificación.
+
+\end{itemize}
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsubsection{Métricas intrínsecas}
+
+\begin{itemize}
+
+    \item \textbf{Inercia o \textit{inertia:}} Es la suma de las distancias cuadradas de cada punto a su centroide. Es la métrica principal optimizada por el algoritmo K-Means.
+    
+    \begin{equation*}
+        Inertia = \sum_{i=1}^N{||x_i-\mu_{C_i}||^2}
+    \end{equation*}
+
+    donde $N$ es el número de instancias total y $\mu_{C_i}$ es el centroide del \textit{cluster} del clúster de cada instancia
+
+    El valor de esta métrica va en el rango $(0,+\infty)$, donde valores cercanos a $0$ indican que los puntos están muy cerca de sus respectivos centroides (\textit{clusters} muy densos); cuanto mayor es el valor mayor es la dispersión de los puntos dentro de los \textit{clusters} (\textit{clusters} menos compactos).
+    
+    La mayor debilidad de esta métrica es que su valor disminuye continuamente conforme aumenta el número de clusters ($k$), lo que no siempre es indicativo de una mejor calidad o de una partición significativa de los datos. Si $k$ es igual al número de puntos ($N$), la inercia será trivialmente cero.
+
+    Uno de los métodos para estimar el número óptimo de clusters ($k$) es el \textbf{método del codo (Elbow-Method)}, que consiste en graficar la inercia en función del número de clusters ($k$) y buscar el punto donde la disminución en la inercia se vuelve marginal o ``se dobla'' (véase la Figura \ref{fig:elbow_method}).
+
+    \begin{figure}[h!]
+        \centering
+        \fbox{\includegraphics[width=0.6\textwidth, keepaspectratio]{secciones/sec1/imagenes/elbow_method.png}}
+        \caption{
+            Método del codo para la determinación del número de clústers óptimo \cite{brus2021clustering}. En este ejemplo, la reducción de inercia empieza a ser marginal a partir de los 3 \textit{clusters}, por lo que se determina $3$ como el número óptimo de \textit{clusters} mediante K-Means.
+        }
+        \label{fig:elbow_method}
+    \end{figure} 
+
+
+
+    \item \textbf{Valor de silueta o \textit{silhouette score}:} El valor de silueta de una instancia es una medida de cuán similar es esta a su propio \textit{cluster} en comparación con otros \textit{clusters}.
+    
+    Se calcula como la diferencia entre la distancia promedio de una instancia a las otras instancias de su propio cluster y la distancia promedio mínima de esa instancia a las instancias de cualquier otro cluster, normalizada por el máximo de estas dos distancias.
+
+    \begin{equation*}
+        s(i) = \left\{ 
+            \begin{array}{rcl}
+                \frac{b(i)-a(i)}{\max\{a(i),b(i)\}} & \mbox{for} &  |C_i| > 1 \\
+                0 & \mbox{for} & |C_i|=1
+            \end{array}
+        \right.
+    \end{equation*}
+
+    donde
+
+    \begin{itemize}
+        \item $a(i)$ es la cohesión o la distancia promedio de la instancia $i$ a todas las demás instancias dentro del mismo cluster ($C_i$). Es una medida de cuán bien ajustada está $i$ a su propio cluster.
+        
+        \begin{equation*}
+            a(i) = \frac{1}{|C_i|-1}\sum_{j \in C, i \ne j}{d(i,j)}
+        \end{equation*}
+
+        \item $b(i)$ es la separación o la distancia promedio mínima de la instancia $i$ a todas las instancias de cualquier otro cluster ($C_k$, donde $k \ne i$). $b(i)$ se toma sobre el cluster vecino más cercano, es decir, el cluster $C_k$ para el cual la distancia promedio de $i$ a sus miembros es la mínima.
+        
+        \begin{equation*}
+            b(i) = \min_{j \ne i}\frac{1}{|C_j|} \sum_{j \in C_j}{d(i,j)}
+        \end{equation*}
+
+    \end{itemize}
+
+    El valor de silueta de una istancia adquiere un valor entre $-1$ y $1$, de donde se puede interpretar:
+
+    \begin{itemize}
+        \item $s(i)$ cercano a $+1$ indica que la instancia está lejos de los \textit{clusters} vecinos y cerca del resto de instancias de su grupo, lo que quiere decir que está bien agrupada
+        \item $s(i)$ cercano a $0$ indica que el valor de cohesión y de separación son casi iguales, y la instancia está cerca del límite de decisión, sugiriendo que podría estar mal agrupada o que los clusters están muy cerca.
+        \item $s(i)$ cercano a $-1$ indica que la instancia es más similar al \textit{cluster} vecino que a su propio \textit{cluster}, sugiriendo que está mal agrupada.
+    \end{itemize}
+
+    Para tener una métrica más compacta e informativa sobre todos los grupos, se obtiene la \textbf{Silhouette Score general}, que es el promedio de los valores de silueta $s(i)$ de todas las instancias.
+
+    Esta métrica suele favorecer a técnicas de \textit{clustering} con forma de \textit{cluster} convexa (esférica) como K-Means, y desfavorecer a algoritmos de \textit{clustering} como DBSCAN u OPTICS basadas en densidad, debido a su incapacidad para manejar y evaluar con precisión \textit{clusters} no convexos o \textit{clusters} de formas complejas (no esféricas).
+
+    \item \textbf{Índice de Davies-Bouldin (DBI):} Este valor mide el promedio de similitud entre \textit{clusters}, donde la similitud es la razón entre la dispersión dentro del \textit{cluster} (qué tan dispersos están los puntos dentro de él) y la separación entre clusters. 
+    
+
+    \begin{equation*}
+        R_i = \max_{j \ne i} (\frac{s_i+s_j}{d(i,j)})
+    \end{equation*}
+    
+
+
+
+    
+    \item \textbf{Índice de Calinski-Harabasz (CH):} Es la razón entre la varianza de la dispersión entre clusters (BSS) y la varianza de la dispersión dentro del \textit{cluster} (WSS):
+    
+    \begin{itemize}
+        \item \textbf{BSS (\textit{Between-Cluster Sum of Squares}):} Mide la dispersión entre clusters. Es la suma de las distancias cuadradas de cada centroide $\mu_i$ al centroide global $\mu$ del conjunto de datos, ponderada por el tamaño del cluster $|C_i|$.
+        
+        \begin{equation*}
+           BSS = \sum_{i=1}^k |C_i| ||\mu_i-\mu||^2
+        \end{equation*}
+        
+        \item \textbf{WSS (\textit{Within-Cluster Sum of Squares}):} Mide la dispersión dentro de los clusters (es la Inercia). Es la suma de las distancias cuadradas de cada punto $x$ a su centroide $\mu_i$.
+        
+        \begin{equation*}
+            WSS = \sum_{i=1}^N{||x_i-\mu_{C_i}||^2} 
+        \end{equation*}
+        
+    \end{itemize}
+    
+    \begin{equation*}
+        CH = \frac{BSS / (k-1)}{WSS / (N-k)}
+    \end{equation*}
+
+    donde $k$ es el número de \textit{clusters} y $N$ es el número de instancias
+
+    Esta métrica favorece a \textit{clusters} ...
+
+
+    \item \textbf{Density-Based Clustering Validation (DBCV) \cite{moulavi2014density}:} Esta métrica está diseñada para abordar las debilidades de métricas tradicionales cuando se evalúan clusters de formas no convexas. La métrica fue propuesta para proporcionar una forma robusta de evaluar algoritmos basados en densidad, como DBSCAN y HDBSCAN, que son capaces de encontrar estas formas complejas.
+    
+    Al igual que el valor de silueta, toma valores entre el $-1$ y $+1$, donde $-1$ 
+
+
+\end{itemize}
+
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsubsection{Métricas extrínsecas}
+
+\begin{itemize}
+    \item \textbf{Homogeneidad (\textit{homogeinity}):} Esta métrica externa evalúa qué tan puro es cada cluster en relación con las clases originales, es decir, si todos las instancias en un cluster pertenecen a la misma clase.
+    
+    \begin{equation*}
+        homogeinity = 1 - \frac{H(C|K)}{H(C)}
+    \end{equation*}
+
+    donde $H(C)$ representa la entropía de las clases originales y $H(C|K)$ representa la entropía condicional de las clases originales dadas las etiquetas de cluster.
+
+    \begin{equation*}
+        H(C|K) = -\sum_{c,k} \frac{n_{ck}}{N} \log\left( \frac{n_{ck}}{n_k} \right)
+    \end{equation*}
+
+    \item \textbf{Completitud (\textit{completeness}):} Esta evalúa qué tan bien se han identificado todas las instancias de una clase en particular. En otras palabras, si todas las instancias que pertenecen a una clase específica se agrupan juntos en un único cluster.
+
+    \begin{equation*}
+        completeness = 1 - \frac{H(K|C)}{H(C)}
+    \end{equation*}
+
+\end{itemize}
+
+Homogeneidad y completitud muestran un \textit{trade-off} entre ellas \cite{rosenberg2007v}: es fácil alcanzar una puntuación perfecta en una de las métricas (por ejemplo, tener un clustering perfectamente homogéneo) a expensas de la otra (una completitud baja), pero es difícil alcanzar puntuaciones altas en ambas simultáneamente.
+
+Por lo tanto, en un análisis de clúster, se busca maximizar tanto la homogeneidad como la completitud. V-measure nos permite esto:
+
+\begin{itemize}
+    \item \textbf{V-measure:} Es una media armónica que combina los valores de la homogeneidad y de la completitud:
+
+    \begin{equation*}
+        V = \frac{2 \times homogeinity \times completeness}{homogenity + completeness} \in [0,1]
+    \end{equation*}
+
+    De esta forma, proporciona una medida combinada de la homogeneidad y completitud.
+
+    \item \textbf{Matriz de contingencia \textit{contingency matrix}:} Podemos crear una tabla cruzada con las clases de referencia en un eje, y las etiquetas de los \textit{clusters} en el otro. Esta herramienta permite visualizar la correspondencia entre las etiquetas de ambas clasificaciones/\textit{clusterings}. Véase un ejemplo en la Figura \ref{fig:contingency_matrix_example}.
+    
+    \begin{figure}[h!]
+        \centering
+        \fbox{\includegraphics[width=0.9\textwidth, keepaspectratio]{secciones/sec1/imagenes/contingency_matrix_example.png}}
+        \caption{
+            Ejemplo de matriz de contingencia. Elaboración propia para la práctica 2 de la asignatura \textit{Aprendizaje Automático}. En dicha práctica, se aplicaban técnicas de clustering sobre transformaciones cosenoidales de señales de audio correspondientes al canto de distintas especies de anuros, con el fin de evaluar si existían diferencias significativas entre los patrones acústicos de las diferentes especies y familias.
+        }
+        \label{fig:contingency_matrix_example}
+    \end{figure} 
+    
+    
+\end{itemize}
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsection{Protocolo de validación experimental}
+
+No todas las variables a analizar deben ser usadas en el \textit{clustering}. Algunas variables pueden ser informativas para interpretar los clusters sin influir en su formación. Estas variables permiten describir, caracterizar y enriquecer los perfiles resultantes, pero no deben incluirse en el cálculo de la distancia o la similitud, ya que podrían distorsionar la agrupación y generar clusters menos representativos de las características que realmente queremos comparar.
+
+En otras palabras, es recomendable diferenciar entre variables de \textit{clustering} y variables de análisis posterior:
+
+\begin{itemize}
+    \item \textbf{Variables de \textit{clustering}:} aquellas que definen la estructura del grupo, basadas en observaciones directas y comparables entre todos los individuos u hogares.
+    \item \textbf{Variables de análisis posterior}: aquellas que ayudan a interpretar o contextualizar los clusters, como indicadores de valor imputado, percepción subjetiva o riqueza implícita.
+\end{itemize}
+
+Esto asegura que los clusters sean consistentes, comparables y fáciles de interpretar, mientras que el análisis posterior proporciona información adicional para comprender las diferencias económicas y sociales entre los grupos.
