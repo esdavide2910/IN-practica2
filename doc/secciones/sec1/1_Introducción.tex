@@ -6,7 +6,7 @@ A diferencia de en la anterior práctica, donde explorábamos una tarea de apren
 
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
 
-\subsection{Datos empleados}
+\subsection{Datos}
 
 Disponemos de un conjunto de datos: \href{https://www.ine.es/dyngs/Prensa/ECV2024.htm}{Encuesta de Condiciones de Vida (ECV) de 2024}. Estos datos son tabulares, con 29 781 instancias y 184 características. La interpretación de las características se recoge en un fichero independiente (diccionario), que contiene el nombre de cada variable, el significado de los códigos que emplea ---de haberlos---, y una descripción. 
 
@@ -21,24 +21,181 @@ No todas las variables principales tienen una complementaria, pero todas las com
  
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
 
-\subsection{Software}
+\subsection{Software y estructura del proyecto}
 
-Trabajaremos con Python, ... 
+Trabajaremos con Python, concretamente con \textbf{marimo} \cite{Agrawal_marimo_-_an_2023}, que proporciona un entorno interactivo y reproducible para la creación de cuadernos ejecutables. Esta herramienta permite combinar código, texto y visualizaciones de forma declarativa, facilitando tanto la exploración como la documentación del proceso de desarrollo.
+
+Para gestionar las dependencias y el entorno del proyecto se ha usado el gestor de paquetes \textbf{uv} \cite{uv}, que ofrece un sistema de resolución y aislamiento extremadamente rápido. Además, uv permite crear entornos virtuales ligeros, instalar versiones específicas de paquetes y reproducir configuraciones de forma determinista, asegurando así la portabilidad y la consistencia del entorno de ejecución en distintas máquinas.
+
+Se ha creado un cuaderno para caso de estudio: \code{caseA.py}, \code{caseB.py} y \code{caseC.py}, en el directorio \code{notebooks/}. Para ejecutar uno de estos, solo debe ejecutar el siguiente comando desde el directorio del proyecto:
+
+\begin{lstlisting}[language=bash, backgroundcolor=\color{backcolour}, basicstyle=\ttfamily\footnotesize, frame=single]
+uv run marimo edit notebooks/case<A/B/C>.py
+\end{lstlisting}
+
+<COMPLETAR EJECUCIÓN DESDE PYTHON>
 
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
 
-\subsection{Clustering}
+\subsection{Algoritmos de \textit{clustering}}
 
+\subsubsection{K-Means}
 
-\subsubsection{Algoritmos de \textit{clustering}}
+Es el algoritmo de clustering más estudiado y utilizado en la literatura, debido a su sencillez, eficiencia computacional y buen rendimiento en numerosos contextos. Tiene como objetivo la partición de un conjunto de instancias en $k$ grupos ---donde $k$ es un parámetro preestablecido--- de modo que cada instancia quede asignada al grupo cuyo centroide (media) sea el más cercano según una medida de distancia, habitualmente la euclídea.
+    
+El funcionamiento de este algoritmo es el siguiente:
 
-Se propone emplear los siguientes algoritmos:
+\begin{enumerate}
+    \item \textbf{Inicialización:}Se eligen $k$ centroides iniciales, ya sea aleatoriamente o mediante un método heurístico (como \textit{k-means++}).
+    \item \textbf{Asignación:} Cada instancia se asigna al \textit{cluster} cuyo centroide esté más próximo.
+    \item \textbf{Actualización}: Para cada \textit{cluster}, se recalcula su centroide como la media de las instancias que contiene.
+    \item \textbf{Iteración}: Se repiten los pasos de asignación y actualización hasta que los centroides no cambian significativamente o se alcanza un criterio de convergencia.
+\end{enumerate}
+
+Este algoritmo tiene dos puntos especialmente sensibles:
 
 \begin{itemize}
-    \item \textbf{K-Means:}
-    \item \textbf{HDBSCAN:}
-    \item \textbf{Gaussian Mixture:} 
+    
+    \item La determinación del parámetro $k$: La elección del número de \textit{clusters} condiciona la estructura final; suele apoyarse en criterios como el método del codo.
+    
+    \begin{tcolorbox}[colback=gray!5!white, colframe=gray!60!black, title=Inercia, breakable]
+
+        La \textbf{inercia} es la función principal optimizada por el algoritmo K-Means. Se define como la suma de las distancias cuadradas de cada instancia a su centroide: 
+
+        \begin{equation*}
+            Inertia = \sum_{i=1}^N{||x_i-\mu_{C_i}||^2}
+        \end{equation*}
+
+        donde $N$ es el número de instancias total y $\mu_{C_i}$ es el centroide del \textit{cluster} del clúster de cada instancia.
+        
+        El valor de esta función va en el rango $[0,+\infty)$, donde valores cercanos a $0$ indican que las instancias están muy cerca de sus respectivos centroides (\textit{clusters} muy densos); cuanto mayor es el valor mayor es la dispersión de las instancias dentro de los \textit{clusters} (\textit{clusters} menos compactos).
+
+        Su valor disminuye continuamente conforme aumenta el número de \textit{clusters} ($k$), lo que no siempre es indicativo de una mejor calidad o de una partición significativa de los datos. Si $k$ es igual al número de instancias ($N$), la inercia será trivialmente cero. Es por esto que no se recomienda emplearla como una métrica.
+
+    \end{tcolorbox}
+
+    El método del codo consiste en graficar la inercia en función del número de \textit{clusters} ($k$) y buscar el punto donde la disminución en la inercia se vuelve marginal o ``se dobla'' (véase la Figura \ref{fig:elbow_method}).
+
+    \begin{figure}[h!]
+        \centering
+        \fbox{\includegraphics[width=0.6\textwidth, keepaspectratio]{secciones/sec1/imagenes/elbow_method.png}}
+        \caption{
+            Método del codo para la determinación del número de clústers óptimo \cite{brus2021clustering}. En este ejemplo, la reducción de inercia empieza a ser marginal a partir de los 3 \textit{clusters}, por lo que se determina $3$ como el número óptimo de \textit{clusters} obtenidos mediante K-Means.
+        }
+        \label{fig:elbow_method}
+    \end{figure} 
+
+    \item \textbf{Determinación de los centroides de inicialización:} Una mala inicialización puede conducir a soluciones subóptimas o a convergencia lenta. Una estrategia habitual para mejorar este punto es distribuir los centroides iniciales lo más alejados posible entre sí en el espacio $n$-dimensional (\textit{k-means++}). También es frecuente realizar múltiples inicializaciones y escoger la solución que minimice la inercia.
+    
 \end{itemize}
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsubsection{HDBSCAN}
+
+\textit{Hierarchical Density-Based Spatial Clustering of Applications with Noise} \cite{campello2013density}. Es una variante del algoritmo de clustering DBSCAN.
+
+\begin{tcolorbox}[colback=gray!5!white, colframe=gray!60!black, title=Funcionamiento de DBSCAN, breakable]
+
+    A diferencia de K-Means, DBSCAN es capaz de manejar conjuntos de datos con formas no convexas y tiene la capacidad de identificar anomalías en los datos.
+
+    DBSCAN agrupa instancias basándose en la noción de densidad de conectividad. Requiere dos parámetros clave:
+
+    \begin{enumerate}
+        \item $\varepsilon$ (épsilon): El radio máximo que define la vecindad de una instancia.
+        \item $MinPts$: Número mínimo de instancias requeridos para formar una región densa.
+    \end{enumerate}
+
+    El algoritmo clasifica cada instancia como uno de tres tipos:
+    
+    \begin{itemize}
+        \item \textbf{Punto núcleo (\textit{core point}):} Una instancia tiene al menos $MinPts$ puntos (instancias) (incluyéndose a sí mismo) dentro de su radio $\varepsilon$.
+        \item \textbf{Punto frontera (\textit{border point}):} Una instancia que se encuentra dentro de la vecindad $\varepsilon$ de una instancia núcleo, pero que tiene menos de $MinPts$ en su propia vecindad.
+        \item \textbf{Punto de ruido (\textit{noise point}):}  Una instancia que no es ni una instancia núcleo ni una instancia frontera.
+    \end{itemize}
+
+    Un \textit{cluster} se forma comenzando con una instancia núcleo y expandiéndose recursivamente hacia todos las instancias que son \textit{densamente alcanzables}. Dos instancias son densamente conectadas si existe una cadena de instancias núcleo que los une, cada uno dentro de la vecindad $\varepsilon$ del anterior. El proceso continúa hasta que no es posible añadir más instancias al \textit{cluster}. Los instancias frontera se asignan al \textit{cluster} de la instancia núcleo que los alcanza, mientras que las instancias que no cumplen ninguna condición se etiquetan como ruido (véase la Figura \ref{fig:dbscan_example}).
+
+\end{tcolorbox}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\includegraphics[width=0.6\textwidth, keepaspectratio]{secciones/sec1/imagenes/dbscan_example.png}}
+    \caption{
+        Puntos núcleo, frontera y ruido. 
+    }
+    \label{fig:dbscan_example}
+\end{figure} 
+
+HDBSCAN extiende y mejora el algoritmo DBSCAN, introduciendo mejoras como:
+
+\begin{enumerate}
+    
+    \item \textbf{Manejo de \textit{clusters} de diferentes densidades:} Mientras que DBSCAN asume que todos los \textit{clusters} tienen una densidad uniforme, HDBSCAN es capaz de identificar \textit{clusters} de diferentes densidades en los datos.
+    
+    \item \textbf{Detección automática del número de \textit{clusters}:} A diferencia de DBSCAN, HDBSCAN no requiere el parámetro $\varepsilon$, ya que utiliza un enfoque basado en un árbol de \textit{clustering} para determinar automáticamente el número óptimo de clusters, lo que elimina la necesidad de ajustar este parámetro manualmente.
+    
+    \item \textbf{Detección de instancias atípicas mejorada:} HDBSCAN utiliza una técnica más sofisticada para identificar estas instancias, lo que puede resultar en una detección más precisa y robusta de instancias atípicas.
+    
+    \item \textbf{Creación de una estructura jerárquica de \textit{clustering}}: El algoritmo construye un \textbf{árbol de \textit{clustering} jerárquico} (basado en la \textbf{mutua alcanzabilidad} y la \textbf{densidad de \textit{core}}) que visualiza cómo los \textit{clusters} se forman y se dividen a diferentes umbrales de densidad. A partir de este árbol, HDBSCAN utiliza una medida de \textbf{estabilidad de \textit{cluster}} para seleccionar los \textit{clusters} más persistentes (los que existen durante un rango más amplio de densidades), dando el resultado final del \textit{clustering}.
+    
+\end{enumerate}
+
+Los dos parámetros más importantes en HDBSCAN son:
+
+\begin{itemize}
+
+    \item El \textbf{tamaño mínimo del \textit{cluster}} determina el número mínimo de instancias necesarias para formar un \textit{cluster}. Afecta directamente la densidad mínima que un conjunto de instancias debe tener para ser considerado un \textit{cluster}. 
+    
+    Si el parámetro tiene un valor muy bajo, se pueden formar muchos \textit{clusters} pequeños de pocas instancias. Si es demasiado alto, se pueden perder \textit{clusters} pequeños y significativos. Un valor de referencia para este es el número de instancias con las etiquetas menos frecuentes.
+    
+    \item El \textbf{número mínimo de puntos} ($MinPts$) determina cuántos puntos (instancias) deben estar en la vecindad de otros dado para que se considere un núcleo. Por tanto, mientras que un valor más alto significa que se requiere una densidad local más alta para que se forme un \textit{cluster}, haciendo que los \textit{clusters} sean más densos, un valor pequeño permitirá que se formen \textit{clusters} más pequeños.
+    
+\end{itemize}
+
+% -------------------------------------------------------------------------------------------------------------------------------------------------- %
+
+\subsubsection{Agglomerative Hierarchical}
+
+Este es un modelo de \textbf{clustering jerárquico aglomerativo} (de abajo hacia arriba, \textit{bottom-up}). A diferencia de K-Means, que crea una única partición de los datos, o HDBSCAN, que construye una jerarquía basada en la densidad, el \textbf{Agglomerative Hierarchical Clustering} construye una jerarquía anidada de \textit{clusters}, representable mediante un dendrograma.
+
+El algoritmo comienza asignando a cada instancia individual su propio clúster. Luego, procede a fusionar iterativamente los \textit{clusters} más cercanos hasta que se cumple una condición de parada (por ejemplo, alcanzar el número deseado de \textit{clusters}, $k$).
+
+El proceso se puede resumir en los siguientes pasos (véase la Figura \ref{fig:agglomerative_hierarchical_example}):
+
+\begin{enumerate}
+    \item \textbf{Inicialización:} Cada instancia es considerada un clúster individual. Si hay $N$ instancias, se comienza con $N$ \textit{clusters}.
+    \item \textbf{Cálculo de Distancias:} Se calcula la distancia o similitud entre todos los pares de \textit{clusters}.
+    \item \textbf{Fusión:} Se fusionan los dos \textit{clusters} que estén más cerca según la medida de distancia definida.
+    \item \textbf{Actualización:} El número de \textit{clusters} disminuye en uno.
+    \item \textbf{Iteración:} Se repiten los pasos 2 y 3 hasta que todos las instancias se han fusionado en un único clúster grande (o se alcanza el criterio de parada). 
+\end{enumerate}
+
+\begin{figure}[h!]
+    \centering
+    \fbox{\includegraphics[width=\textwidth, keepaspectratio]{secciones/sec1/imagenes/agglomerative_hierarchical_example.png}}
+    \caption{
+        Agglomerative Hierarchical Clustering.
+    }
+    \label{fig:agglomerative_hierarchical_example}
+\end{figure} 
+
+La clave de este algoritmo reside en cómo se define la ``distancia'' entre dos clústeres. Esta medida se conoce como función de enlace (linkage) o criterio de aglomeración. Las funciones de enlace más comunes son:
+
+\begin{itemize}
+    \item \textbf{Enlace mínimo (\textit{single linkage}):} La distancia más corta entre cualquier par de instancias en los dos \textit{clusters}. Tiende a formar \textit{clusters} largos y delgados (\textit{chaining effect}).
+    \item \textbf{Enlace máximo (\textit{complete linkage}):} La distancia más larga entre cualquier par de instancias en los dos \textit{clusters}. Tiende a formar \textit{clusters} compactos.
+    \item \textbf{Enlace promedio (\textit{average linkage}):} El promedio de todas las distancias por pares entre las instancias en los dos \textit{clusters}.
+    \item \textbf{Enlace de Ward (\textit{Ward's linkage}):} Minimiza el incremento de la varianza total dentro de los \textit{clusters} fusionados. Es la medida más utilizada y tiende a formar \textit{clusters} de tamaño similar.
+\end{itemize}
+
+Generalmente, se ejecuta el algoritmo hasta:
+
+\begin{itemize}
+    \item Alcanzar un número preestablecido de \textit{clusters} (\textit{k}): Por ejemplo, detener el proceso cuando solo queden 3 clústeres. 
+    \item Superar un umbral de disimilitud: La fusión se detiene si la distancia (la altura de la barra horizontal en el dendrograma) entre los dos clústeres más cercanos es mayor que un valor umbral especificado.
+\end{itemize}
+
 
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
@@ -63,34 +220,9 @@ Como se ha indicado antes, el \textit{clustering} no busca dar una salida que pu
 
 \begin{itemize}
 
-    \item \textbf{Inercia o \textit{inertia:}} Es la suma de las distancias cuadradas de cada punto a su centroide. Es la métrica principal optimizada por el algoritmo K-Means.
-    
-    \begin{equation*}
-        Inertia = \sum_{i=1}^N{||x_i-\mu_{C_i}||^2}
-    \end{equation*}
-
-    donde $N$ es el número de instancias total y $\mu_{C_i}$ es el centroide del \textit{cluster} del clúster de cada instancia
-
-    El valor de esta métrica va en el rango $(0,+\infty)$, donde valores cercanos a $0$ indican que los puntos están muy cerca de sus respectivos centroides (\textit{clusters} muy densos); cuanto mayor es el valor mayor es la dispersión de los puntos dentro de los \textit{clusters} (\textit{clusters} menos compactos).
-    
-    La mayor debilidad de esta métrica es que su valor disminuye continuamente conforme aumenta el número de clusters ($k$), lo que no siempre es indicativo de una mejor calidad o de una partición significativa de los datos. Si $k$ es igual al número de puntos ($N$), la inercia será trivialmente cero.
-
-    Uno de los métodos para estimar el número óptimo de clusters ($k$) es el \textbf{método del codo (Elbow-Method)}, que consiste en graficar la inercia en función del número de clusters ($k$) y buscar el punto donde la disminución en la inercia se vuelve marginal o ``se dobla'' (véase la Figura \ref{fig:elbow_method}).
-
-    \begin{figure}[h!]
-        \centering
-        \fbox{\includegraphics[width=0.6\textwidth, keepaspectratio]{secciones/sec1/imagenes/elbow_method.png}}
-        \caption{
-            Método del codo para la determinación del número de clústers óptimo \cite{brus2021clustering}. En este ejemplo, la reducción de inercia empieza a ser marginal a partir de los 3 \textit{clusters}, por lo que se determina $3$ como el número óptimo de \textit{clusters} mediante K-Means.
-        }
-        \label{fig:elbow_method}
-    \end{figure} 
-
-
-
     \item \textbf{Valor de silueta o \textit{silhouette score}:} El valor de silueta de una instancia es una medida de cuán similar es esta a su propio \textit{cluster} en comparación con otros \textit{clusters}.
     
-    Se calcula como la diferencia entre la distancia promedio de una instancia a las otras instancias de su propio cluster y la distancia promedio mínima de esa instancia a las instancias de cualquier otro cluster, normalizada por el máximo de estas dos distancias.
+    Se calcula como la diferencia entre la distancia promedio de una instancia a las otras instancias de su propio \textit{cluster} y la distancia promedio mínima de esa instancia a las instancias de cualquier otro cluster, normalizada por el máximo de estas dos distancias.
 
     \begin{equation*}
         s(i) = \left\{ 
@@ -98,19 +230,19 @@ Como se ha indicado antes, el \textit{clustering} no busca dar una salida que pu
                 \frac{b(i)-a(i)}{\max\{a(i),b(i)\}} & \mbox{for} &  |C_i| > 1 \\
                 0 & \mbox{for} & |C_i|=1
             \end{array}
-        \right.
+        \right. \in [-1,+1]
     \end{equation*}
 
     donde
 
     \begin{itemize}
-        \item $a(i)$ es la cohesión o la distancia promedio de la instancia $i$ a todas las demás instancias dentro del mismo cluster ($C_i$). Es una medida de cuán bien ajustada está $i$ a su propio cluster.
+        \item $a(i)$ es la cohesión o la distancia promedio de la instancia $i$ a todas las demás instancias dentro del mismo \textit{cluster} ($C_i$). Es una medida de cuán bien ajustada está $i$ a su propio cluster.
         
         \begin{equation*}
             a(i) = \frac{1}{|C_i|-1}\sum_{j \in C, i \ne j}{d(i,j)}
         \end{equation*}
 
-        \item $b(i)$ es la separación o la distancia promedio mínima de la instancia $i$ a todas las instancias de cualquier otro cluster ($C_k$, donde $k \ne i$). $b(i)$ se toma sobre el cluster vecino más cercano, es decir, el cluster $C_k$ para el cual la distancia promedio de $i$ a sus miembros es la mínima.
+        \item $b(i)$ es la separación o la distancia promedio mínima de la instancia $i$ a todas las instancias de cualquier otro \textit{cluster} ($C_k$, donde $k \ne i$). $b(i)$ se toma sobre el \textit{cluster} vecino más cercano, es decir, el \textit{cluster} $C_k$ para el cual la distancia promedio de $i$ a sus miembros es la mínima.
         
         \begin{equation*}
             b(i) = \min_{j \ne i}\frac{1}{|C_j|} \sum_{j \in C_j}{d(i,j)}
@@ -122,55 +254,118 @@ Como se ha indicado antes, el \textit{clustering} no busca dar una salida que pu
 
     \begin{itemize}
         \item $s(i)$ cercano a $+1$ indica que la instancia está lejos de los \textit{clusters} vecinos y cerca del resto de instancias de su grupo, lo que quiere decir que está bien agrupada
-        \item $s(i)$ cercano a $0$ indica que el valor de cohesión y de separación son casi iguales, y la instancia está cerca del límite de decisión, sugiriendo que podría estar mal agrupada o que los clusters están muy cerca.
+        \item $s(i)$ cercano a $0$ indica que el valor de cohesión y de separación son casi iguales, y la instancia está cerca del límite de decisión, sugiriendo que podría estar mal agrupada o que los \textit{clusters} están muy cerca.
         \item $s(i)$ cercano a $-1$ indica que la instancia es más similar al \textit{cluster} vecino que a su propio \textit{cluster}, sugiriendo que está mal agrupada.
     \end{itemize}
 
-    Para tener una métrica más compacta e informativa sobre todos los grupos, se obtiene la \textbf{Silhouette Score general}, que es el promedio de los valores de silueta $s(i)$ de todas las instancias.
+    Para tener una métrica más compacta e informativa sobre todos los grupos, se obtiene la \textbf{\textit{silhouette score} general}, que es el promedio de los valores de silueta $s(i)$ de todas las instancias.
 
     Esta métrica suele favorecer a técnicas de \textit{clustering} con forma de \textit{cluster} convexa (esférica) como K-Means, y desfavorecer a algoritmos de \textit{clustering} como DBSCAN u OPTICS basadas en densidad, debido a su incapacidad para manejar y evaluar con precisión \textit{clusters} no convexos o \textit{clusters} de formas complejas (no esféricas).
 
-    \item \textbf{Índice de Davies-Bouldin (DBI):} Este valor mide el promedio de similitud entre \textit{clusters}, donde la similitud es la razón entre la dispersión dentro del \textit{cluster} (qué tan dispersos están los puntos dentro de él) y la separación entre clusters. 
+    % ------------------------------------------------------------ %
+
+    \item \textbf{Índice de Davies-Bouldin (DBI):} Este valor mide el promedio de similitud entre \textit{clusters}, donde la similitud es la razón entre la dispersión dentro del \textit{cluster} (qué tan dispersos están las instancias dentro de él) y la separación entre \textit{clusters}. Es una métrica de validación de \textit{clustering} basada en los centroides, donde valores más bajos indican un mejor \textit{clustering}.
     
+    La fórmula completa del Índice de Davies-Bouldin es el promedio de las razones de similitud más altas para cada \textit{cluster}:
 
     \begin{equation*}
-        R_i = \max_{j \ne i} (\frac{s_i+s_j}{d(i,j)})
+        DBI = \frac{1}{K} \sum_{i=1}^K R_i \in [0, +\infty)
     \end{equation*}
+
+    donde:
+
+    \begin{itemize}
+
+        \item $K$ es el número de \textit{clusters},
+        
+        \item $R_i$ es el medida de similitud más alta (el ratio más grande) entre el \textit{cluster} $C_i$ y cualquier otro $C_j$, para $j \ne i$.
+        
+        \begin{equation*}
+            R_i = \max_{j \ne i} \left( \frac{s_i+s_j}{d(i,j)} \right)
+        \end{equation*}
     
+    \end{itemize}
 
+    La medida de similitud $R_i$ se construye a partir de los siguientes componentes:
 
+    \begin{itemize}
 
+        \item \textbf{Dispersión Intraclúster ($s_i$):} Representa la dispersión o tamaño del \textit{cluster} $C_i$. Se define comúnmente como la distancia promedio de todas las instancias en el \textit{cluster} al centroide de ese \textit{cluster} ($\mu_i$), es decir, la inercia de las instancias del \textit{cluster}.
+        
+        \item \textbf{Separación Interclúster ($d(i,j)$):} Representa la distancia entre los \textit{clusters} $C_i$ y $C_j$. Generalmente, es la distancia entre sus centroides ($\mu_i$ y $\mu_j$).
+        
+        \begin{equation*}
+           d(i,j) = ||\mu_i-\mu_j||
+        \end{equation*}
+        
+    \end{itemize}
+
+    El valor de $R_i$ compara la dispersión de dos clusters (numerador: $s_i + s_j$) con la distancia entre ellos (denominador: $d(i,j)$).
+    \begin{itemize}
+        \item Un valor de $R_i$ alto indica que los clusters $C_i$ y su vecino más cercano $C_j$ son dispersos (alto $s_i + s_j$) y/o están muy cerca (bajo $d(i,j)$).
+        \item Un valor de $R_i$ bajo indica que los clusters $C_i$ y $C_j$ son compactos y están bien separados.
+    \end{itemize}
+
+    % ------------------------------------------------------------ %
     
-    \item \textbf{Índice de Calinski-Harabasz (CH):} Es la razón entre la varianza de la dispersión entre clusters (BSS) y la varianza de la dispersión dentro del \textit{cluster} (WSS):
+    \item \textbf{Índice de Calinski-Harabasz (CH):} Es la razón entre la varianza de la dispersión entre \textit{clusters} (BSS) y la varianza de la dispersión dentro del \textit{cluster} (WSS):
     
     \begin{itemize}
-        \item \textbf{BSS (\textit{Between-Cluster Sum of Squares}):} Mide la dispersión entre clusters. Es la suma de las distancias cuadradas de cada centroide $\mu_i$ al centroide global $\mu$ del conjunto de datos, ponderada por el tamaño del cluster $|C_i|$.
+        \item \textbf{BSS (\textit{Between-Cluster Sum of Squares}):} Mide la dispersión entre clusters. Es la suma de las distancias cuadradas de cada centroide $\mu_i$ al centroide global $\mu$ del conjunto de datos, ponderada por el tamaño del \textit{cluster} $|C_i|$.
         
         \begin{equation*}
            BSS = \sum_{i=1}^k |C_i| ||\mu_i-\mu||^2
         \end{equation*}
         
-        \item \textbf{WSS (\textit{Within-Cluster Sum of Squares}):} Mide la dispersión dentro de los clusters (es la Inercia). Es la suma de las distancias cuadradas de cada punto $x$ a su centroide $\mu_i$.
+        \item \textbf{WSS (\textit{Within-Cluster Sum of Squares}):} Mide la dispersión dentro de los \textit{clusters} (es la Inercia). Es la suma de las distancias cuadradas de cada instancia $x$ a su centroide $\mu_i$.
         
         \begin{equation*}
             WSS = \sum_{i=1}^N{||x_i-\mu_{C_i}||^2} 
         \end{equation*}
         
     \end{itemize}
+
+    Luego el índice CH se calcula: 
     
     \begin{equation*}
-        CH = \frac{BSS / (k-1)}{WSS / (N-k)}
+        CH = \frac{BSS / (k-1)}{WSS / (N-k)} \in [0,+\infty)
     \end{equation*}
 
     donde $k$ es el número de \textit{clusters} y $N$ es el número de instancias
 
-    Esta métrica favorece a \textit{clusters} ...
+    Esta métrica se interpreta de la siguiente manera:
 
+    \begin{itemize}
+        
+        \item Valores cercanos a $0$ indica un \textit{clustering} pobre o una partición sin estructura significativa. Esto sucede cuando la dispersión entre \textit{clusters} ($\text{BSS}$) es baja (los centroides están muy juntos o cerca del centroide global) y/o la dispersión dentro de los \textit{clusters} ($\text{WSS}$) es alta (los \textit{clusters} son muy dispersos). En esencia, los grupos no están bien separados ni son compactos.
 
-    \item \textbf{Density-Based Clustering Validation (DBCV) \cite{moulavi2014density}:} Esta métrica está diseñada para abordar las debilidades de métricas tradicionales cuando se evalúan clusters de formas no convexas. La métrica fue propuesta para proporcionar una forma robusta de evaluar algoritmos basados en densidad, como DBSCAN y HDBSCAN, que son capaces de encontrar estas formas complejas.
+        \item Valores altos indican un \textit{clustering} de alta calidad. El valor alto resulta de una alta dispersión entre \textit{clusters} (alto $\text{BSS}$) y una baja dispersión dentro de los \textit{clusters} (bajo $\text{WSS}$). En términos prácticos, esto significa que los \textit{clusters} son compactos (las instancias están muy cerca de sus centroides) y bien separados entre sí. El número de \textit{clusters} ($k$) óptimo es aquel que maximiza este índice.
+        
+    \end{itemize}
+
+    % ------------------------------------------------------------ %
+
+    \item \textbf{Density-Based Clustering Validation (DBCV)} \cite{moulavi2014density} \textbf{:} Esta métrica está diseñada para abordar las debilidades de métricas tradicionales cuando se evalúan \textit{clusters} de formas no convexas. La métrica fue propuesta para proporcionar una forma robusta de evaluar algoritmos basados en densidad, como DBSCAN y HDBSCAN, que son capaces  de encontrar estas formas complejas.
     
-    Al igual que el valor de silueta, toma valores entre el $-1$ y $+1$, donde $-1$ 
+    Al igual que el valor de silueta, toma valores entre el $-1$ y $+1$.
 
+    \begin{itemize}
+
+        \item DBCV cercano a $+1$: Indica un \textit{clustering} excelente. Esto ocurre cuando los \textit{clusters} tienen una alta densidad interna ($ICD$ alto) y están bien separados por regiones de baja densidad de conexión con sus \textit{clusters} vecinos ($\max(ICCD)$ bajo).
+        
+        \item DBCV cercano a $0$: Sugiere que los \textit{clusters} están superpuestos o que no hay una estructura de densidad bien definida. Los \textit{clusters} vecinos tienen una densidad de conexión similar a la densidad interna del \textit{cluster}.
+        
+        \item DBCV cercano a $-1$: Indica un \textit{clustering} pobre. Esto ocurre cuando la conexión de densidad a los \textit{clusters} vecinos es mayor que la densidad interna del propio \textit{cluster}, sugiriendo que las instancias están mal agrupadas.
+        
+    \end{itemize}
+
+    % ------------------------------------------------------------ %
+
+    \item \textbf{Mapa 2D de características reducidas:} 
+
+    % ------------------------------------------------------------ %
+
+    \item \textbf{Dendograma:} Un dendograma es un diagrama en forma de árbol, que ... 
 
 \end{itemize}
 
@@ -180,7 +375,7 @@ Como se ha indicado antes, el \textit{clustering} no busca dar una salida que pu
 \subsubsection{Métricas extrínsecas}
 
 \begin{itemize}
-    \item \textbf{Homogeneidad (\textit{homogeinity}):} Esta métrica externa evalúa qué tan puro es cada cluster en relación con las clases originales, es decir, si todos las instancias en un cluster pertenecen a la misma clase.
+    \item \textbf{Homogeneidad (\textit{homogeinity}):} Esta métrica externa evalúa qué tan puro es cada \textit{cluster} en relación con las clases originales, es decir, si todos las instancias en un \textit{cluster} pertenecen a la misma clase.
     
     \begin{equation*}
         homogeinity = 1 - \frac{H(C|K)}{H(C)}
@@ -224,7 +419,6 @@ Por lo tanto, en un análisis de clúster, se busca maximizar tanto la homogenei
         \label{fig:contingency_matrix_example}
     \end{figure} 
     
-    
 \end{itemize}
 
 % -------------------------------------------------------------------------------------------------------------------------------------------------- %
@@ -233,7 +427,7 @@ Por lo tanto, en un análisis de clúster, se busca maximizar tanto la homogenei
 
 \subsection{Protocolo de validación experimental}
 
-No todas las variables a analizar deben ser usadas en el \textit{clustering}. Algunas variables pueden ser informativas para interpretar los clusters sin influir en su formación. Estas variables permiten describir, caracterizar y enriquecer los perfiles resultantes, pero no deben incluirse en el cálculo de la distancia o la similitud, ya que podrían distorsionar la agrupación y generar clusters menos representativos de las características que realmente queremos comparar.
+No todas las variables a analizar deben ser usadas en el \textit{clustering}. Algunas variables pueden ser informativas para interpretar los \textit{clusters} sin influir en su formación. Estas variables permiten describir, caracterizar y enriquecer los perfiles resultantes, pero no deben incluirse en el cálculo de la distancia o la similitud, ya que podrían distorsionar la agrupación y generar \textit{clusters} menos representativos de las características que realmente queremos comparar.
 
 En otras palabras, es recomendable diferenciar entre variables de \textit{clustering} y variables de análisis posterior:
 
@@ -242,4 +436,4 @@ En otras palabras, es recomendable diferenciar entre variables de \textit{cluste
     \item \textbf{Variables de análisis posterior}: aquellas que ayudan a interpretar o contextualizar los clusters, como indicadores de valor imputado, percepción subjetiva o riqueza implícita.
 \end{itemize}
 
-Esto asegura que los clusters sean consistentes, comparables y fáciles de interpretar, mientras que el análisis posterior proporciona información adicional para comprender las diferencias económicas y sociales entre los grupos.
+Esto asegura que los \textit{clusters} sean consistentes, comparables y fáciles de interpretar, mientras que el análisis posterior proporciona información adicional para comprender las diferencias económicas y sociales entre los grupos.

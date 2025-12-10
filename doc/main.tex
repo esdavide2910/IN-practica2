@@ -43,6 +43,8 @@
   \renewcommand{\tablename}{Tabla}
   \renewcommand{\listtablename}{Índice de tablas}
 }
+%
+\usepackage{listings}
 
 % --------------------------------------
 % Configuraciones personalizadas
@@ -67,6 +69,18 @@
 \appto{\bibsetup}{\sloppy}
 % Archivo de bibliografía
 \addbibresource{bibliografia.bib}
+%
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    xleftmargin=1.5em,
+    frame=single,
+}
+\lstset{style=mystyle}
 
 % --------------------------------------
 % Documento
